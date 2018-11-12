@@ -17,7 +17,18 @@ import android.view.animation.AlphaAnimation
 
 
 
-
+fun fade_out(time : Long) : AlphaAnimation {
+    val anim = AlphaAnimation(1.0f, 0.0f)
+    anim.duration = time
+    anim.fillAfter = true
+    return anim
+}
+fun fade_in(time : Long) : AlphaAnimation {
+    val anim = AlphaAnimation(0.0f, 1.0f)
+    anim.duration = time
+    anim.fillAfter = true
+    return anim
+}
 
 
 class DiapoActivity : AppCompatActivity() {
@@ -49,17 +60,19 @@ class DiapoActivity : AppCompatActivity() {
 
         Timer().scheduleAtFixedRate(4300, 5000) {
             this@DiapoActivity.runOnUiThread {
-                val anim = AlphaAnimation(1.0f, 0.0f)
-                anim.duration = 500
-                anim.fillAfter = true
-                diapoHere.getChildAt(0).startAnimation(anim)
+                diapoHere.getChildAt(0).startAnimation(fade_out(500))
 
             }
         }
         Timer().scheduleAtFixedRate(0, 5000) {
             this@DiapoActivity.runOnUiThread {
                 diapoHere.removeAllViews();
-                diapoHere.addView(cards.getRandom().getView(this@DiapoActivity),0)
+
+                val diapo = cards.getRandom().getView(this@DiapoActivity)
+                diapoHere.addView(diapo,0)
+
+                diapo.startAnimation(fade_in(100))
+
             }
         }
     }
