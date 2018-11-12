@@ -12,9 +12,11 @@ import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 import android.view.WindowManager
 import android.R.attr.button
+import android.graphics.drawable.Drawable
+import android.support.v4.content.ContextCompat
 import android.view.animation.Animation
 import android.view.animation.AlphaAnimation
-
+import fr.u31.cards.lib.ImageCard
 
 
 fun fade_out(time : Long) : AlphaAnimation {
@@ -52,6 +54,8 @@ class DiapoActivity : AppCompatActivity() {
             "do♭", "ré♭", "mi♭", "fa♭", "sol♭", "la♭", "si♭"
             )
 
+        val i = ContextCompat.getDrawable(getApplicationContext(), R.mipmap.ic_audio_a)
+        var c = ImageCard("test", i as Drawable)
 
         val cards = Cards(l.map { s -> Card(s) })
 
@@ -68,7 +72,7 @@ class DiapoActivity : AppCompatActivity() {
             this@DiapoActivity.runOnUiThread {
                 diapoHere.removeAllViews();
 
-                val diapo = cards.getRandom().getView(this@DiapoActivity)
+                val diapo = c.getView(this@DiapoActivity)
                 diapoHere.addView(diapo,0)
 
                 diapo.startAnimation(fade_in(100))
