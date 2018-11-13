@@ -18,6 +18,8 @@ import android.view.animation.Animation
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.ImageCard
 
+import fr.u31.cards.lib.make_cards
+
 
 fun fade_out(time : Long) : AlphaAnimation {
     val anim = AlphaAnimation(1.0f, 0.0f)
@@ -45,22 +47,9 @@ class DiapoActivity : AppCompatActivity() {
         val params = window.attributes
         params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
         window.attributes = params
+        
+        val cards = make_cards(this);
 
-
-
-        val l = listOf<String>(
-            "do", "ré", "mi", "fa", "sol", "la", "si",
-            "do♯", "ré♯", "mi♯", "fa♯", "sol♯", "la♯", "si♯",
-            "do♭", "ré♭", "mi♭", "fa♭", "sol♭", "la♭", "si♭"
-            )
-
-        val i = ContextCompat.getDrawable(getApplicationContext(), R.mipmap.ic_audio_a)
-        var c = ImageCard("test", i as Drawable)
-
-        val cards = Cards(l.map { s -> Card(s) })
-
-
-        val layoutInflater:LayoutInflater = LayoutInflater.from(applicationContext)
 
         Timer().scheduleAtFixedRate(4300, 5000) {
             this@DiapoActivity.runOnUiThread {
@@ -72,11 +61,12 @@ class DiapoActivity : AppCompatActivity() {
             this@DiapoActivity.runOnUiThread {
                 diapoHere.removeAllViews();
 
-                val diapo = c.getView(this@DiapoActivity)
+                val diapo = cards.getRandom().getView(this@DiapoActivity)
                 diapoHere.addView(diapo,0)
 
                 diapo.startAnimation(fade_in(100))
 
+                println("pouet")
             }
         }
     }

@@ -22,8 +22,8 @@
                     android:layout_height="300dp"
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="8dp"
-                    tools:src="@mipmap/ic_audio_a"
-                    android:contentDescription="Diapo's image"/>
+                    tools:src="@drawable/ic_do"
+                    android:contentDescription="Diapo's image" />
             <TextView
                     android:id="@+id/diapoName"
                     android:layout_width="match_parent"
