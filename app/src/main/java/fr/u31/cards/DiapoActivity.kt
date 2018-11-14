@@ -1,24 +1,14 @@
 package fr.u31.cards
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
-
-import fr.u31.cards.lib.Card
+import android.support.v7.app.AppCompatActivity
+import android.view.WindowManager
+import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
-
+import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
-import kotlin.concurrent.scheduleAtFixedRate
-import android.view.WindowManager
-import android.R.attr.button
-import android.graphics.drawable.Drawable
-import android.support.v4.content.ContextCompat
-import android.view.animation.Animation
-import android.view.animation.AlphaAnimation
-import fr.u31.cards.lib.ImageCard
-
-import fr.u31.cards.lib.make_cards
+import kotlin.concurrent.timerTask
 
 
 fun fade_out(time : Long) : AlphaAnimation {
@@ -36,38 +26,58 @@ fun fade_in(time : Long) : AlphaAnimation {
 
 
 class DiapoActivity : AppCompatActivity() {
+    var timer : Timer? = null
+    var cards : Cards? = null
 
+    fun startTimer() {
+        val fadeOutTask = timerTask {
+            this@DiapoActivity.runOnUiThread {
+                diapoHere.getChildAt(0).startAnimation(fade_out(500))
+
+            }
+        }
+
+        val fadeInTask = timerTask {
+            this@DiapoActivity.runOnUiThread {
+                diapoHere.removeAllViews()
+
+                if(cards != null) {
+                    val diapo = (cards as Cards).getRandom().getView(this@DiapoActivity)
+                    diapoHere.addView(diapo, 0)
+
+                    diapo.startAnimation(fade_in(100))
+                }
+            }}
+
+
+        timer = Timer()
+
+        timer?.scheduleAtFixedRate(fadeOutTask, 4300, 5000)
+        timer?.scheduleAtFixedRate(fadeInTask, 0, 5000)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_diapo)
+    }
+
+    override fun onStart() {
+        super.onStart()
 
         /* Going full brignthness */
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val params = window.attributes
         params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
         window.attributes = params
-        
-        val cards = make_cards(this);
 
+        cards = make_cards(this)
 
-        Timer().scheduleAtFixedRate(4300, 5000) {
-            this@DiapoActivity.runOnUiThread {
-                diapoHere.getChildAt(0).startAnimation(fade_out(500))
+        startTimer()
 
-            }
-        }
-        Timer().scheduleAtFixedRate(0, 5000) {
-            this@DiapoActivity.runOnUiThread {
-                diapoHere.removeAllViews();
+    }
 
-                val diapo = cards.getRandom().getView(this@DiapoActivity)
-                diapoHere.addView(diapo,0)
-
-                diapo.startAnimation(fade_in(100))
-
-                println("pouet")
-            }
-        }
+    override fun onStop() {
+        super.onStop()
+        timer?.cancel()
     }
 }
