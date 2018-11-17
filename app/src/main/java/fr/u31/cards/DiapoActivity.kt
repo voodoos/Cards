@@ -1,10 +1,15 @@
 package fr.u31.cards
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
+import fr.u31.cards.lib.audio.SamplingThread
 import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
@@ -26,8 +31,11 @@ fun fade_in(time : Long) : AlphaAnimation {
 
 
 class DiapoActivity : AppCompatActivity() {
+    val PR_RECORD_AUDIO = 1
+
     var timer : Timer? = null
     var cards : Cards? = null
+    val sthread = SamplingThread(this)
 
     fun startTimer() {
         val fadeOutTask = timerTask {
@@ -56,9 +64,38 @@ class DiapoActivity : AppCompatActivity() {
         timer?.scheduleAtFixedRate(fadeInTask, 0, 5000)
     }
 
+    fun startSampling() {
+        // No permission, no gain
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted, we ask for it
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                PR_RECORD_AUDIO
+                )
+            return
+        }
+        // Permission is granted, we start the sampling thread :
+        sthread.start()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PR_RECORD_AUDIO -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED))
+                    // permission was granted, yay!
+                    startSampling()
+                return
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_diapo)
+
+        startSampling()
     }
 
     override fun onStart() {
