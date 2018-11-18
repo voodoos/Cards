@@ -5,8 +5,8 @@ import android.support.v4.content.ContextCompat
 import fr.u31.cards.R
 
 fun to_french_notes (n : String) : String {
-    var note : String = ""
-    var alt : String = ""
+    var note = ""
+    var alt = ""
     when (n[0]) {
         'a' -> note = "la"
         'b' -> note = "si"
@@ -32,8 +32,7 @@ val all_notes = notes.flatMap { n -> listOf(n, n + "is", n + "es") }
 fun make_cards (ctx : Context) : Cards {
     return Cards(all_notes.map { s ->
         val name = "note_" + s + "_svg"
-        println(name)
-        val id = ctx.resources.getIdentifier(name, "drawable", "fr.u31.cards");
+        val id = ctx.resources.getIdentifier(name, "drawable", "fr.u31.cards")
         ImageCard(to_french_notes(s), ctx.getDrawable(id))
     })
 }
