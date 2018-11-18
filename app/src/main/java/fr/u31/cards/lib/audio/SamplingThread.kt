@@ -7,14 +7,13 @@
 
 package fr.u31.cards.lib.audio
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
+import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
-import android.support.v4.content.ContextCompat
-import java.lang.Exception
+import fr.u31.cards.lib.debug
+import kotlin.concurrent.thread
 
 class SamplingThread(val ctx : Context) : Thread() {
     override fun run() {
@@ -26,8 +25,41 @@ class SamplingThread(val ctx : Context) : Thread() {
 
         val record = AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes)
 
-       if(record.state == AudioRecord.STATE_UNINITIALIZED){
-           return
-       }
+        if(record.state == AudioRecord.STATE_UNINITIALIZED){
+            return
+        }
+
+        var audioData = ShortArray(10)
+        record.startRecording()
+
+        val recordingThread = thread {
+            val audioData = ShortArray(bufferSizeInBytes)
+
+            while(record.recordingState == RECORDSTATE_RECORDING) {
+                record.read(audioData, 0, bufferSizeInBytes)
+
+                debug(audioData.fold(""){ acc, s -> acc + " " + s.toString() })
+            }
+
+        }
+
+        debug("Start recording thread")
+        recordingThread.start()
+
+        debug("Before sleep")
+        sleep(1000000)
+        record.stop()
+
+
+        /*
+        debug("Starting recording")
+        record.startRecording()
+
+        sleep(1000)
+
+        debug("Stoping recording")
+        record.stop()
+        */
+
     }
 }
