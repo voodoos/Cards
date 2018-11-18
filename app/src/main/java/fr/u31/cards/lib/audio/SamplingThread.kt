@@ -13,7 +13,6 @@ import android.media.AudioRecord
 import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
 import fr.u31.cards.lib.debug
-import kotlin.concurrent.thread
 
 class SamplingThread(val ctx : Context) : Thread() {
     override fun run() {
@@ -29,26 +28,19 @@ class SamplingThread(val ctx : Context) : Thread() {
             return
         }
 
-        var audioData = ShortArray(10)
         record.startRecording()
 
-        val recordingThread = thread {
-            val audioData = ShortArray(bufferSizeInBytes)
+        debug("Start recording loop")
+        val audioData = ShortArray(bufferSizeInBytes)
 
-            while(record.recordingState == RECORDSTATE_RECORDING) {
-                record.read(audioData, 0, bufferSizeInBytes)
+        while(record.recordingState == RECORDSTATE_RECORDING) {
+            record.read(audioData, 0, bufferSizeInBytes)
 
-                debug(audioData.fold(""){ acc, s -> acc + " " + s.toString() })
-            }
-
+            debug(audioData.fold(""){ acc, s -> acc + " " + s.toString() })
         }
 
-        debug("Start recording thread")
-        recordingThread.start()
-
-        debug("Before sleep")
-        sleep(1000000)
         record.stop()
+        record.release()
 
 
         /*
