@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+
+<LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".DiapoActivity" android:id="@+id/diapoHere" tools:layout_editor_absoluteY="81dp"
-        android:keepScreenOn="true">
+        android:layout_height="match_parent">
 
+
+    <TextView
+            android:id="@+id/diapoInfo"
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+<FrameLayout
+android:orientation="vertical"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context=".DiapoActivity" android:id="@+id/diapoHere" tools:layout_editor_absoluteY="81dp"
+android:keepScreenOn="true">
 </FrameLayout>
+</LinearLayout>

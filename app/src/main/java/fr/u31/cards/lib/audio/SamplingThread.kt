@@ -16,7 +16,7 @@ import android.media.MediaRecorder
 import com.google.corp.productivity.specialprojects.android.fft.RealDoubleFFT
 import fr.u31.cards.lib.debug
 import fr.u31.cards.lib.deepToString
-import kotlinx.android.synthetic.main.diapo_view.*
+import kotlinx.android.synthetic.main.activity_diapo.*
 
 
 class SamplingThread(val ctx : Context) : Thread() {
