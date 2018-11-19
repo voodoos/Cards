@@ -82,7 +82,7 @@ class SamplingThread(val ctx : Context) : Thread() {
                 peakFrequencies.add(i * sampleRateInHz / bufferSizeInBytes)
         }
 
-        debug(peakFrequencies)
+        //debug(peakFrequencies)
         return peakFrequencies
     }
 
@@ -112,7 +112,7 @@ class SamplingThread(val ctx : Context) : Thread() {
 
             val peakFrequencies =  peakAnalysis(da)
 
-            debug( maxIdx * sampleRateInHz / bufferSizeInBytes)
+            //debug( maxIdx * sampleRateInHz / bufferSizeInBytes)
 
             (ctx as Activity).runOnUiThread {
                 ctx.diapoInfo.text = peakFrequencies.deepToString()

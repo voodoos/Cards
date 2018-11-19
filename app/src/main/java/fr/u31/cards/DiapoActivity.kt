@@ -9,7 +9,11 @@ import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
+import fr.u31.cards.lib.audio.Alteration
+import fr.u31.cards.lib.audio.BaseNote
+import fr.u31.cards.lib.audio.Note
 import fr.u31.cards.lib.audio.SamplingThread
+import fr.u31.cards.lib.debug
 import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
@@ -33,9 +37,9 @@ fun fade_in(time : Long) : AlphaAnimation {
 class DiapoActivity : AppCompatActivity() {
     val PR_RECORD_AUDIO = 1
 
-    var timer : Timer? = null
-    var cards : Cards? = null
-    val sthread = SamplingThread(this)
+    private var timer : Timer? = null
+    private var cards : Cards? = null
+    private val sthread = SamplingThread(this)
 
     fun startTimer() {
         val fadeOutTask = timerTask {
@@ -96,6 +100,8 @@ class DiapoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_diapo)
 
         startSampling()
+
+        debug(Note(BaseNote.A, Alteration.None, 4).toString())
     }
 
     override fun onStart() {
