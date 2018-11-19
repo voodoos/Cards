@@ -7,6 +7,7 @@
 
 package fr.u31.cards.lib.audio
 
+import android.app.Activity
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -14,6 +15,8 @@ import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
 import com.google.corp.productivity.specialprojects.android.fft.RealDoubleFFT
 import fr.u31.cards.lib.debug
+import fr.u31.cards.lib.deepToString
+import kotlinx.android.synthetic.main.diapo_view.*
 
 
 class SamplingThread(val ctx : Context) : Thread() {
@@ -21,14 +24,21 @@ class SamplingThread(val ctx : Context) : Thread() {
     private val sampleRateInHz = 48000
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat  = AudioFormat.ENCODING_PCM_16BIT
-    private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
+    private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 4
 
     private val fft = RealDoubleFFT(bufferSizeInBytes) // Maybe a bad value
 
-    private fun decomplexification(data: DoubleArray) : DoubleArray {
+    private fun fftCompute(audioData: ShortArray) : DoubleArray {
+
+        var data = DoubleArray(bufferSizeInBytes) { i -> audioData[i].toDouble() }
+
+        // The call to the FFT library:
+        fft.ft(data)
+
         /*
-            Code from : https://github.com/bewantbe/audio-analyzer-for-android/blob/master/audioSpectrumAnalyzer/src/main/java/github/bewantbe/audio_analyzer_for_android/STFT.java
-         */
+            Decomplexification
+            Code from : https://github.com/bewantbe/audio-analyzer-for-android
+        */
         val size = data.size
         val dataOut = DoubleArray(size / 2 + 1)
 
@@ -48,6 +58,40 @@ class SamplingThread(val ctx : Context) : Thread() {
         return dataOut
     }
 
+    private fun indexToFreq(idx : Int) : Int {
+        return idx * sampleRateInHz / bufferSizeInBytes
+    }
+
+    private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Int> {
+        val i_max = spectrum.indices.maxBy { spectrum[it] } ?: -1
+        val v_max = spectrum[i_max]
+
+        /* Normalization */
+        //val norm_spectrum = spectrum.map { d -> d * 1.0 / (if (v_max == 0.0) 1.0 else v_max) }
+        val peakFrequencies = ArrayList<Int>()
+
+        if(v_max > 0)
+            for(i in 0..(spectrum.size - 1))
+                spectrum[i] = spectrum[i] * 1.0 / v_max
+
+        for (i in 1..(spectrum.size - 2)) {
+            val prev = spectrum[i] - spectrum[i-1]
+            val next = spectrum[i + 1] - spectrum[i]
+
+            if(prev >= 0 && next <= 0 && spectrum[i] > 0.3)
+                peakFrequencies.add(i * sampleRateInHz / bufferSizeInBytes)
+        }
+
+        debug(peakFrequencies)
+        return peakFrequencies
+    }
+
+    /*
+    x -> max
+    y -> 100
+    y = 100 * x / max
+     */
+
     override fun run() {
 
         val record = AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes)
@@ -63,16 +107,16 @@ class SamplingThread(val ctx : Context) : Thread() {
         while(record.recordingState == RECORDSTATE_RECORDING) {
             record.read(audioData, 0, bufferSizeInBytes)
 
-            //debug("   " + audioData.fold(""){ acc, s -> acc + " " + s.toString() })
-            //debug("   " + audioData.fold(""){ acc, s -> acc + " " + s.toString() })
-
-            var da = DoubleArray(bufferSizeInBytes) { i -> audioData[i].toDouble()}
-            fft.ft(da)
-
-            //debug("ft " + audioData.fold(""){ acc, s -> acc + " " + s.toString() })
-            da = decomplexification(da)
+            val da = fftCompute(audioData)
             val maxIdx = da.indices.maxBy { da[it] } ?: -1
+
+            val peakFrequencies =  peakAnalysis(da)
+
             debug( maxIdx * sampleRateInHz / bufferSizeInBytes)
+
+            (ctx as Activity).runOnUiThread {
+                ctx.diapoInfo.text = peakFrequencies.deepToString()
+            }
         }
 
         record.stop()
