@@ -24,7 +24,7 @@ class SamplingThread(val ctx : Context) : Thread() {
     private val sampleRateInHz = 44100
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat  = AudioFormat.ENCODING_PCM_16BIT
-    private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 4
+    private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 3 /* todo: choosen arbitralrly... */
 
     private val fft = RealDoubleFFT(bufferSizeInBytes) // Maybe a bad value
 
@@ -101,7 +101,7 @@ class SamplingThread(val ctx : Context) : Thread() {
         }
 
         record.startRecording()
-        debug("Start recording loop")
+        debug("Start recording loop with buffersize = $bufferSizeInBytes")
         val audioData = ShortArray(bufferSizeInBytes)
 
         while(record.recordingState == RECORDSTATE_RECORDING) {
