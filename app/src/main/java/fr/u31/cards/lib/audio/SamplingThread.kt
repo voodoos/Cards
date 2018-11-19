@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.diapo_view.*
 
 class SamplingThread(val ctx : Context) : Thread() {
     private val audioSource = MediaRecorder.AudioSource.MIC
-    private val sampleRateInHz = 48000
+    private val sampleRateInHz = 44100
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat  = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 4
