@@ -64,6 +64,15 @@ class Note (val base : BaseNote,
 
     }
 
+    override fun equals(other: Any?): Boolean {
+        if(other is Note)
+            if(other.base == base)
+                if(other.alt == alt)
+                    if(other.lvl == lvl)
+                        return true
+        return false
+    }
+
     fun toString(lang : Lang, withFreq : Boolean = false) : String {
         val res = when (lang) {
             Lang.En -> (base.name
