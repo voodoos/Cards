@@ -9,11 +9,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
-import fr.u31.cards.lib.audio.Alteration
-import fr.u31.cards.lib.audio.BaseNote
-import fr.u31.cards.lib.audio.Note
 import fr.u31.cards.lib.audio.SamplingThread
-import fr.u31.cards.lib.debug
 import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
@@ -100,8 +96,6 @@ class DiapoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_diapo)
 
         startSampling()
-
-        debug(Note(BaseNote.A, Alteration.None, 4).toString())
     }
 
     override fun onStart() {

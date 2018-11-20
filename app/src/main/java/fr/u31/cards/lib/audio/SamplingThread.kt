@@ -62,13 +62,13 @@ class SamplingThread(val ctx : Context) : Thread() {
         return idx * sampleRateInHz / bufferSizeInBytes
     }
 
-    private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Int> {
+    private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Double> {
         val i_max = spectrum.indices.maxBy { spectrum[it] } ?: -1
         val v_max = spectrum[i_max]
 
         /* Normalization */
         //val norm_spectrum = spectrum.map { d -> d * 1.0 / (if (v_max == 0.0) 1.0 else v_max) }
-        val peakFrequencies = ArrayList<Int>()
+        val peakFrequencies = ArrayList<Double>()
 
         if(v_max > 0)
             for(i in 0..(spectrum.size - 1))
@@ -79,18 +79,15 @@ class SamplingThread(val ctx : Context) : Thread() {
             val next = spectrum[i + 1] - spectrum[i]
 
             if(prev >= 0 && next <= 0 && spectrum[i] > 0.3)
-                peakFrequencies.add(i * sampleRateInHz / bufferSizeInBytes)
+                peakFrequencies.add(
+                    (i.toDouble()) * (sampleRateInHz.toDouble())
+                            / (bufferSizeInBytes.toDouble())
+                )
         }
 
         //debug(peakFrequencies)
         return peakFrequencies
     }
-
-    /*
-    x -> max
-    y -> 100
-    y = 100 * x / max
-     */
 
     override fun run() {
 
@@ -108,14 +105,17 @@ class SamplingThread(val ctx : Context) : Thread() {
             record.read(audioData, 0, bufferSizeInBytes)
 
             val da = fftCompute(audioData)
-            val maxIdx = da.indices.maxBy { da[it] } ?: -1
 
             val peakFrequencies =  peakAnalysis(da)
 
-            //debug( maxIdx * sampleRateInHz / bufferSizeInBytes)
+            //debug(peakFrequencies.deepToString())
+            //debug(peakFrequencies.deepToString())
 
             (ctx as Activity).runOnUiThread {
-                ctx.diapoInfo.text = peakFrequencies.deepToString()
+                ctx.diapoInfo.text = peakFrequencies.map{
+                        f -> val (arr, dist) = Note.nearestNote(f)
+                    Pair(arr.contentDeepToString(), dist)
+                }.deepToString()
             }
         }
 
