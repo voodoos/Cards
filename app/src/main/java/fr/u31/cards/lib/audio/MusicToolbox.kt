@@ -85,7 +85,7 @@ class Note (val base : BaseNote,
     }
 
     companion object {
-        private val freqLa4 = 440
+        private const val freqLa4 = 440.0
         private val root2 = pow(2.0, 1.0 / 12.0)
         val standardNotes = Array<Array<Note>>(87, ::noteOfRank)
         val standardNotesFlat = standardNotes.flatten()
@@ -111,14 +111,11 @@ class Note (val base : BaseNote,
         ) : Int {
             val baseRank = base.ordinal * 2 + (12 * lvl)
 
-            val altRank = when (alt) {
+            return when (alt) {
                 Alteration.Flat -> baseRank - 1
                 Alteration.Sharp -> baseRank + 1
                 Alteration.None -> baseRank
             }
-
-
-            return altRank;
         }
 
         /**
@@ -183,23 +180,24 @@ class Note (val base : BaseNote,
          * @return       the nearest note(s)
          */
         fun nearestNote(freq : Double) : Pair<Array<Note>, Double> {
-            var diff = 10000000000000.0
+            fun distance(ns : Array<Note>) : Double {
+                return Math.abs(ns[0].freq - freq)
+            }
+            var dist = Double.MAX_VALUE
             var res = standardNotes.last()
 
             for (ns in standardNotes) {
-                val newDiff = Math.abs(ns[0].freq - freq)
-                if(newDiff < diff) {
-                    diff = newDiff
+                val newDist = distance(ns)
+                if(newDist < dist) {
+                    dist = newDist
                     res = ns
                 } else {
-                    return Pair(res, diff)
+                    return Pair(res, dist)
                 }
             }
 
-            return Pair(res, Math.abs(standardNotes.last()[0].freq - freq))
-
+            return Pair(res, dist)
         }
-
     }
 }
 
