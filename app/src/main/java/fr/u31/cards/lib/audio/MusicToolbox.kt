@@ -95,8 +95,9 @@ class Note (val base : BaseNote,
 
     companion object {
         private const val freqLa4 = 440.0
+        private const val nbStandardNotes = 87
         private val root2 = pow(2.0, 1.0 / 12.0)
-        val standardNotes = Array<Array<Note>>(87, ::noteOfRank)
+        val standardNotes = Array<Array<Note>>(nbStandardNotes, ::noteOfRank)
         val standardNotesFlat = standardNotes.flatten()
 
         /**

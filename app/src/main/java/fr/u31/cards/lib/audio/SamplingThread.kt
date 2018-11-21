@@ -7,7 +7,6 @@
 
 package fr.u31.cards.lib.audio
 
-import android.app.Activity
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -15,8 +14,6 @@ import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
 import com.google.corp.productivity.specialprojects.android.fft.RealDoubleFFT
 import fr.u31.cards.lib.debug
-import fr.u31.cards.lib.deepToString
-import kotlinx.android.synthetic.main.activity_diapo.*
 
 
 class SamplingThread(val ctx : Context) : Thread() {
@@ -25,6 +22,8 @@ class SamplingThread(val ctx : Context) : Thread() {
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat  = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 3 /* todo: choosen arbitralrly... */
+
+    var lastPeakFrequencies : ArrayList<Double>? = null
 
     private val fft = RealDoubleFFT(bufferSizeInBytes) // Maybe a bad value
 
@@ -106,17 +105,17 @@ class SamplingThread(val ctx : Context) : Thread() {
 
             val da = fftCompute(audioData)
 
-            val peakFrequencies =  peakAnalysis(da)
+            lastPeakFrequencies = peakAnalysis(da)
 
             //debug(peakFrequencies.deepToString())
             //debug(peakFrequencies.deepToString())
-
+/*
             (ctx as Activity).runOnUiThread {
                 ctx.diapoInfo.text = peakFrequencies.map{
                         f -> val (arr, dist) = Note.nearestNote(f)
                     Pair(arr.contentDeepToString(), dist)
                 }.deepToString()
-            }
+            }*/
         }
 
         record.stop()

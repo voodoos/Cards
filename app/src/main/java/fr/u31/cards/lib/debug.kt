@@ -12,6 +12,12 @@ fun <T> debug(tab: Iterable<T>) {
     debug("[$s]")
 }
 
-fun debug(s : Any) {
+fun debug(s : Any?) {
+    if(s == null) println("cards-debug: null")
+    else println("cards-debug: " + s.toString())
+}
+
+/*fun debug(s : Any) {
     println("cards-debug: " + s.toString())
 }
+*/
