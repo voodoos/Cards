@@ -78,13 +78,13 @@ class SamplingThread(val ctx : Context) : Thread() {
             val prev = spectrum[i] - spectrum[i-1]
             val next = spectrum[i + 1] - spectrum[i]
 
-            if(prev >= 0 && next <= 0 && spectrum[i] > mean)
+            if(prev >= 0 && next <= 0 && spectrum[i] > 0.3)
                 peakFrequencies.add(
                     (i.toDouble()) * (sampleRateInHz.toDouble())
                             / (bufferSizeInBytes.toDouble())
                 )
         }
-
+        debug(mean)
         debug(peakFrequencies)
         return peakFrequencies
     }
