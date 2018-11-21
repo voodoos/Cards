@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.ArrayAdapter
+import fr.u31.cards.lib.audio.Note
 import kotlinx.android.synthetic.main.activity_test.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -11,14 +12,20 @@ import kotlin.concurrent.timerTask
 
 class TestActivity : SamplingActivity() {
     private var timer : Timer? = null
-    private var data : ArrayList<Double> = ArrayList()
-    private var adapter : ArrayAdapter<Double>? = null
+    private var data : ArrayList<String> = ArrayList()
+    private var adapter : ArrayAdapter<String>? = null
 
     fun startTimer() {
         val fetchData = timerTask {
             if(getThread().lastPeakFrequencies != null) {
                 data.clear()
-                getThread().lastPeakFrequencies?.onEach { elt : Double -> data.add(elt) }
+                getThread().lastPeakFrequencies?.onEach {
+                    val (notes, delta) = Note.nearestNote(it)
+                    val str = Math.round(it).toString() + "hz " +
+                            notes.contentDeepToString() +
+                            " (∆: " + Math.round(delta) + ")"
+                    data.add(str)
+                }
             }
 
 
@@ -44,7 +51,7 @@ class TestActivity : SamplingActivity() {
 
         val list = resultList
 
-        adapter = ArrayAdapter<Double>(this, android.R.layout.simple_list_item_1, data)
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
 
         list.adapter = adapter
     }

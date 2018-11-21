@@ -38,6 +38,14 @@ fun toFrench(a : Alteration) : String {
 
     }
 }
+fun toEnglish(a : Alteration) : String {
+    return when(a) {
+        Alteration.Sharp -> "Sharp"
+        Alteration.Flat -> "Flat"
+        Alteration.None -> ""
+
+    }
+}
 fun toSym(a : Alteration) : String {
     return when(a) {
         Alteration.Sharp -> "♯"
@@ -77,7 +85,7 @@ class Note (val base : BaseNote,
         val res = when (lang) {
             Lang.En -> (base.name
                     + lvl.toString()
-                    + " " + alt.name)
+                    + " " + toEnglish(alt))
             Lang.Fr -> (toFrench(base)
                     + (lvl - 1).toString()
                     + " " + toFrench(alt))
@@ -86,9 +94,8 @@ class Note (val base : BaseNote,
         if(withFreq)
             return res + " (" + freq.toString() + "hz)"
         return res
-
-
     }
+
     override fun toString(): String {
         return toString(Lang.En)
     }
@@ -97,7 +104,7 @@ class Note (val base : BaseNote,
         private const val freqLa4 = 440.0
         private const val nbStandardNotes = 87
         private val root2 = pow(2.0, 1.0 / 12.0)
-        val standardNotes = Array<Array<Note>>(nbStandardNotes, ::noteOfRank)
+        val standardNotes = Array(nbStandardNotes, ::noteOfRank)
         val standardNotesFlat = standardNotes.flatten()
 
         /**
@@ -194,9 +201,9 @@ class Note (val base : BaseNote,
                 return Math.abs(ns[0].freq - freq)
             }
             var dist = Double.MAX_VALUE
-            var res = standardNotes.last()
+            var res = this.standardNotes.last()
 
-            for (ns in standardNotes) {
+            for (ns in this.standardNotes) {
                 val newDist = distance(ns)
                 if(newDist < dist) {
                     dist = newDist
