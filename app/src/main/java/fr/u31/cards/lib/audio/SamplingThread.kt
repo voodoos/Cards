@@ -63,6 +63,7 @@ class SamplingThread(val ctx : Context) : Thread() {
 
     private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Double> {
         val i_max = spectrum.indices.maxBy { spectrum[it] } ?: -1
+        val mean = (spectrum.fold(0.0) { acc, elt -> acc + elt }) / spectrum.size
         val v_max = spectrum[i_max]
 
         /* Normalization */
@@ -77,14 +78,14 @@ class SamplingThread(val ctx : Context) : Thread() {
             val prev = spectrum[i] - spectrum[i-1]
             val next = spectrum[i + 1] - spectrum[i]
 
-            if(prev >= 0 && next <= 0 && spectrum[i] > 0.3)
+            if(prev >= 0 && next <= 0 && spectrum[i] > mean)
                 peakFrequencies.add(
                     (i.toDouble()) * (sampleRateInHz.toDouble())
                             / (bufferSizeInBytes.toDouble())
                 )
         }
 
-        //debug(peakFrequencies)
+        debug(peakFrequencies)
         return peakFrequencies
     }
 
@@ -108,7 +109,7 @@ class SamplingThread(val ctx : Context) : Thread() {
             lastPeakFrequencies = peakAnalysis(da)
 
             //debug(peakFrequencies.deepToString())
-            //debug(peakFrequencies.deepToString())
+            //debug(lastPeakFrequencies.toString())
 /*
             (ctx as Activity).runOnUiThread {
                 ctx.diapoInfo.text = peakFrequencies.map{
