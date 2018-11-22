@@ -14,6 +14,6 @@ class Cards (val cards: List<Card>) {
         while (iter.hasNext())
             res += iter.next().toString() + ";"
 
-        return res + "]"
+        return "$res]"
     }
 }
