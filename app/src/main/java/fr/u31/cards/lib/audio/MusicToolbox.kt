@@ -81,7 +81,7 @@ class Note (val base : BaseNote,
         return false
     }
 
-    fun toString(lang : Lang, withFreq : Boolean = false) : String {
+    fun toString(lang : Lang, withFreq : Boolean = true) : String {
         val res = when (lang) {
             Lang.En -> (base.name
                     + lvl.toString()
@@ -102,10 +102,10 @@ class Note (val base : BaseNote,
 
     companion object {
         private const val freqLa4 = 440.0
-        private const val nbStandardNotes = 87
+        private const val nbStandardNotes = 89
         private val root2 = pow(2.0, 1.0 / 12.0)
-        val standardNotes = Array(nbStandardNotes, ::noteOfRank)
-        val standardNotesFlat = standardNotes.flatten()
+        val pianoKeys = Array(nbStandardNotes - 1, ::noteOfRank)
+        val pianoKeysFlat = pianoKeys.flatten()
 
         /**
          * Computes the "rank" of a given note. For example :
@@ -113,6 +113,7 @@ class Note (val base : BaseNote,
          *   A0Sharp -> 1
          *   B0Flat -> 1
          *   B0 -> 2
+         *   C1 -> 3
          *   ...
          * <p>
          * This method does not check the validity of a note.
@@ -126,7 +127,18 @@ class Note (val base : BaseNote,
                        lvl : Int = 4,
                        alt : Alteration = Alteration.None
         ) : Int {
-            val baseRank = base.ordinal * 2 + (12 * lvl)
+            var lvl = lvl
+            if(base.ordinal >= 2) lvl--
+
+            val baseRank = when (base) {
+                BaseNote.A -> 0
+                BaseNote.B -> 2
+                BaseNote.C -> 3
+                BaseNote.D -> 5
+                BaseNote.E -> 7
+                BaseNote.F -> 8
+                BaseNote.G -> 10
+            } + (12 * lvl)
 
             return when (alt) {
                 Alteration.Flat -> baseRank - 1
@@ -144,14 +156,49 @@ class Note (val base : BaseNote,
          * @see rankOfNote
          */
         fun noteOfRank(rank : Int) : Array<Note> {
-            val octave = rank / 12
+            var octave = rank / 12
             val base = rank % 12
 
-            if(base % 2 == 0)
-                return  arrayOf(Note(BaseNote.values()[base / 2], octave))
-            else return arrayOf(
-                Note(BaseNote.values()[(base - 1) / 2], octave, Alteration.Sharp),
-                Note(BaseNote.values()[(base + 1) / 2], octave, Alteration.Flat))
+            if(base >= 3) octave++
+
+            // todo: is there a better way ?
+            return when (base) {
+                /* A */
+                0 -> arrayOf(Note(BaseNote.A, octave))
+                1 -> arrayOf(
+                    Note(BaseNote.A, octave, Alteration.Sharp),
+                    Note(BaseNote.B, octave, Alteration.Flat)
+                )
+                /* B */
+                2 -> arrayOf(Note(BaseNote.B, octave, Alteration.None))
+                /* C */
+                3 -> arrayOf(Note(BaseNote.C, octave, Alteration.None))
+                /* D */
+                4 -> arrayOf(
+                    Note(BaseNote.C, octave, Alteration.Sharp),
+                    Note(BaseNote.D, octave, Alteration.Flat)
+                )
+                5 -> arrayOf(Note(BaseNote.D, octave, Alteration.None))
+                /* E */
+                6 -> arrayOf(
+                    Note(BaseNote.D, octave, Alteration.Sharp),
+                    Note(BaseNote.E, octave, Alteration.Flat)
+                )
+                7 -> arrayOf(Note(BaseNote.E, octave, Alteration.None))
+                /* F */
+                8 -> arrayOf(Note(BaseNote.F, octave, Alteration.None))
+                9 -> arrayOf(
+                    Note(BaseNote.F, octave, Alteration.Sharp),
+                    Note(BaseNote.G, octave, Alteration.Flat)
+                )
+                /* G */
+                10 -> arrayOf(Note(BaseNote.G, octave, Alteration.None))
+                11 -> arrayOf(
+                    Note(BaseNote.G, octave, Alteration.Sharp),
+                    Note(BaseNote.A, octave, Alteration.Flat)
+                )
+                else -> throw IllegalArgumentException("Base not should range from 0 and 11, found $base.")
+            }
         }
 
         /**
@@ -201,9 +248,9 @@ class Note (val base : BaseNote,
                 return Math.abs(ns[0].freq - freq)
             }
             var dist = Double.MAX_VALUE
-            var res = this.standardNotes.last()
+            var res = this.pianoKeys.last()
 
-            for (ns in this.standardNotes) {
+            for (ns in this.pianoKeys) {
                 val newDist = distance(ns)
                 if(newDist < dist) {
                     dist = newDist

@@ -5,6 +5,8 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.ArrayAdapter
 import fr.u31.cards.lib.audio.Note
+import fr.u31.cards.lib.debug
+import fr.u31.cards.lib.deepToString
 import kotlinx.android.synthetic.main.activity_test.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -54,6 +56,9 @@ class TestActivity : SamplingActivity() {
         adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
 
         list.adapter = adapter
+
+        debug(Note.pianoKeys.contentDeepToString())
+        debug(Note.pianoKeys.map { n -> n.map { n -> n.rank}}.deepToString())
     }
 
     override fun onStart() {
