@@ -14,6 +14,7 @@ import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
 import com.google.corp.productivity.specialprojects.android.fft.RealDoubleFFT
 import fr.u31.cards.lib.debug
+import kotlin.math.log10
 
 
 class SamplingThread(val ctx : Context) : Thread() {
@@ -62,30 +63,34 @@ class SamplingThread(val ctx : Context) : Thread() {
     }
 
     private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Double> {
+
+        for(i in 0..(spectrum.size - 1))
+            spectrum[i] = 10.0 * log10(spectrum[i]);
+
+
         val i_max = spectrum.indices.maxBy { spectrum[it] } ?: -1
-        val mean = (spectrum.fold(0.0) { acc, elt -> acc + elt }) / spectrum.size
+        val mediane = (spectrum.sorted())[spectrum.size / 2]
         val v_max = spectrum[i_max]
 
         /* Normalization */
         //val norm_spectrum = spectrum.map { d -> d * 1.0 / (if (v_max == 0.0) 1.0 else v_max) }
         val peakFrequencies = ArrayList<Double>()
 
-        if(v_max > 0)
-            for(i in 0..(spectrum.size - 1))
-                spectrum[i] = spectrum[i] * 1.0 / v_max
 
+        val threshold = mediane + (70.0 / 100.0) * v_max
         for (i in 1..(spectrum.size - 2)) {
             val prev = spectrum[i] - spectrum[i-1]
             val next = spectrum[i + 1] - spectrum[i]
 
-            if(prev >= 0 && next <= 0 && spectrum[i] > 0.3)
+            if(prev >= 0 && next <= 0 && spectrum[i] > threshold)
                 peakFrequencies.add(
                     (i.toDouble()) * (sampleRateInHz.toDouble())
                             / (bufferSizeInBytes.toDouble())
                 )
         }
-        debug(mean)
-        debug(peakFrequencies)
+        debug("threshold", threshold)
+        debug("vmax", v_max)
+        //debug(peakFrequencies)
         return peakFrequencies
     }
 

@@ -12,12 +12,36 @@ fun <T> debug(tab: Iterable<T>) {
     debug("[$s]")
 }
 
-fun debug(s : Any?) {
-    if(s == null) println("cards-debug: null")
-    else println("cards-debug: " + s.toString())
+
+fun <T> toStr(tab: Array<T>) : String {
+    val s = tab.fold ("") { acc, elt ->
+        if (acc == "") acc + elt.toString()
+        else acc + ", " + elt.toString()
+    }
+    return "[$s]"
 }
 
-/*fun debug(s : Any) {
-    println("cards-debug: " + s.toString())
+fun <T> toStr(tab: Iterable<T>) : String {
+    val s = tab.fold ("") { acc, elt ->
+        if (acc == "") acc + elt.toString()
+        else acc + ", " + elt.toString()
+    }
+    return "[$s]"
 }
-*/
+
+fun toStrA(s : Any?) : String {
+    return if(s == null) "null"
+    else toStr(s)
+}
+
+fun toStr(s : Any) : String {
+    return s.toString()
+}
+
+fun debug(s : Any?) {
+    println("cards-debug: " + toStrA(s))
+}
+
+fun debug(label : String, s : Any?) {
+    println("cards-debug: " + label + ": "+ toStrA(s))
+}
