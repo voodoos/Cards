@@ -48,5 +48,23 @@ open class SamplingActivity : AppCompatActivity() {
         startSampling()
     }
 
+    override fun onStart() {
+        super.onStart()
+
+
+        getThread().pleaseStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        getThread().pleasePause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        getThread().pleaseStop()
+    }
+
 
 }

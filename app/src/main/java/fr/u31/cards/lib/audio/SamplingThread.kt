@@ -10,7 +10,6 @@ package fr.u31.cards.lib.audio
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
-import android.media.AudioRecord.RECORDSTATE_RECORDING
 import android.media.MediaRecorder
 import com.google.corp.productivity.specialprojects.android.fft.RealDoubleFFT
 import fr.u31.cards.lib.debug
@@ -18,6 +17,8 @@ import kotlin.math.log10
 
 
 class SamplingThread(val ctx : Context) : Thread() {
+    private var shouldStop = false
+    private var isPaused = true
     private val audioSource = MediaRecorder.AudioSource.MIC
     private val sampleRateInHz = 44100
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
@@ -88,8 +89,8 @@ class SamplingThread(val ctx : Context) : Thread() {
                             / (bufferSizeInBytes.toDouble())
                 )
         }
-        debug("threshold", threshold)
-        debug("vmax", v_max)
+        //debug("threshold", threshold)
+        //debug("vmax", v_max)
         //debug(peakFrequencies)
         return peakFrequencies
     }
@@ -103,18 +104,20 @@ class SamplingThread(val ctx : Context) : Thread() {
         }
 
         record.startRecording()
-        debug("Start recording loop with buffersize = $bufferSizeInBytes")
+        debug("ST", "Start recording loop with buffersize = $bufferSizeInBytes")
         val audioData = ShortArray(bufferSizeInBytes)
 
-        while(record.recordingState == RECORDSTATE_RECORDING) {
-            record.read(audioData, 0, bufferSizeInBytes)
+        while(!shouldStop) {
+            if(isPaused) sleep(500)
+            else {
+                record.read(audioData, 0, bufferSizeInBytes)
 
-            val da = fftCompute(audioData)
+                val da = fftCompute(audioData)
 
-            lastPeakFrequencies = peakAnalysis(da)
+                lastPeakFrequencies = peakAnalysis(da)
 
-            //debug(peakFrequencies.deepToString())
-            //debug(lastPeakFrequencies.toString())
+                //debug(peakFrequencies.deepToString())
+                //debug(lastPeakFrequencies.toString())
 /*
             (ctx as Activity).runOnUiThread {
                 ctx.diapoInfo.text = peakFrequencies.map{
@@ -122,21 +125,24 @@ class SamplingThread(val ctx : Context) : Thread() {
                     Pair(arr.contentDeepToString(), dist)
                 }.deepToString()
             }*/
+            }
         }
 
         record.stop()
         record.release()
 
+        debug("ST", "SamplingThread stopping")
+    }
 
-        /*
-        debug("Starting recording")
-        record.startRecording()
+    fun pleaseStop() {
+        shouldStop = true;
+    }
 
-        sleep(1000)
+    fun pleaseStart() {
+        isPaused = false;
+    }
 
-        debug("Stoping recording")
-        record.stop()
-        */
-
+    fun pleasePause() {
+        isPaused = true;
     }
 }

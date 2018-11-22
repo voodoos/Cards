@@ -19,22 +19,23 @@ class TestActivity : SamplingActivity() {
 
     fun startTimer() {
         val fetchData = timerTask {
-            if(getThread().lastPeakFrequencies != null) {
-                data.clear()
-                getThread().lastPeakFrequencies?.onEach {
-                    val (notes, delta) = Note.nearestNote(it)
-                    val str = Math.round(it).toString() + "hz " +
-                            notes.contentDeepToString() +
-                            " (∆: " + Math.round(delta) + ")"
-                    data.add(str)
+            val lastPeaks = getThread().lastPeakFrequencies
+            if(lastPeaks != null) {
+                Handler(Looper.getMainLooper()).post {
+                    data.clear()
+                    lastPeaks.onEach {
+                        val (notes, delta) = Note.nearestNote(it)
+                        val str = Math.round(it).toString() + "hz " +
+                                notes.contentDeepToString() +
+                                " (∆: " + Math.round(delta) + ")"
+                        data.add(str)
+                    }
+                    /* Adapter view must be modified from main thread */
+                    adapter?.notifyDataSetChanged()
                 }
             }
 
 
-            /* Adapter view must be modified from main thread */
-            Handler(Looper.getMainLooper()).post {
-                adapter?.notifyDataSetChanged()
-            }
         }
 
         timer = Timer()
