@@ -1,15 +1,12 @@
 package fr.u31.cards
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
-import fr.u31.cards.lib.audio.SamplingThread
+import fr.u31.cards.lib.audio.*
+import fr.u31.cards.lib.debug
+import fr.u31.cards.lib.deepToString
 import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
@@ -30,12 +27,9 @@ fun fade_in(time : Long) : AlphaAnimation {
 }
 
 
-class DiapoActivity : AppCompatActivity() {
-    val PR_RECORD_AUDIO = 1
-
+class DiapoActivity : SamplingActivity() {
     private var timer : Timer? = null
     private var cards : Cards? = null
-    private val sthread = SamplingThread(this)
 
     fun startTimer() {
         val fadeOutTask = timerTask {
@@ -58,50 +52,51 @@ class DiapoActivity : AppCompatActivity() {
             }}
 
 
+        val checkSuccess = timerTask {
+            val peaks = getThread().lastPeakFrequencies
+            //debug(getThread().lastPeakFrequencies?.deepToString())
+
+            if(peaks != null && peaks.size > 0) {
+                val peakNotes = peaks.map {
+                    val (arr, delta) = Note.nearestNote(it)
+                    if (delta > 10) arrayOf() else arr
+                }.toTypedArray()
+                val nbDos =  peakNotes.countNote2(Note(BaseNote.C, Alteration.None))
+                val nbMis =  peakNotes.countNote2(Note(BaseNote.E, Alteration.None))
+                val nbSols =  peakNotes.countNote2(Note(BaseNote.G, Alteration.None))
+
+                if(nbDos > 0 && nbMis > 0 && nbSols > 0 && peakNotes.size - (nbDos + nbMis + nbSols) == 0) {
+                    this@DiapoActivity.runOnUiThread {
+                        diapoInfo.setText("SUCCES")
+                    }
+                }
+                /*
+                debug("nbDos", nbDos)
+                debug("nbMis", nbMis)
+                debug("nbSols", nbSols)
+                debug("totalAccord", nbDos + nbMis + nbSols)
+                debug("totalTotal", peakNotes.size)
+                debug("difference", peakNotes.size - (nbDos + nbMis + nbSols))
+                */
+            }
+        }
+
         timer = Timer()
 
         timer?.scheduleAtFixedRate(fadeOutTask, 4300, 5000)
         timer?.scheduleAtFixedRate(fadeInTask, 0, 5000)
-    }
-
-    fun startSampling() {
-        // No permission, no gain
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, we ask for it
-            ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                PR_RECORD_AUDIO
-                )
-            return
-        }
-        // Permission is granted, we start the sampling thread :
-        sthread.start()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            PR_RECORD_AUDIO -> {
-                // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED))
-                    // permission was granted, yay!
-                    startSampling()
-                return
-            }
-        }
+        timer?.scheduleAtFixedRate(checkSuccess, 0, 250)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_diapo)
-
-        startSampling()
     }
 
     override fun onStart() {
         super.onStart()
 
-        /* Going full brignthness */
+        /* Going full brightness */
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val params = window.attributes
         params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL

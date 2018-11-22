@@ -72,6 +72,8 @@ class Note (val base : BaseNote,
 
     }
 
+    constructor(base : BaseNote, alt : Alteration) : this(base, 4, alt)
+
     override fun equals(other: Any?): Boolean {
         if(other is Note)
             if(other.base == base)
@@ -79,6 +81,10 @@ class Note (val base : BaseNote,
                     if(other.lvl == lvl)
                         return true
         return false
+    }
+
+    fun isHarmonicOf(n : Note) : Boolean {
+        return n.base == base && n.alt == alt
     }
 
     fun toString(lang : Lang, withFreq : Boolean = true) : String {
@@ -263,6 +269,18 @@ class Note (val base : BaseNote,
             return Pair(res, dist)
         }
     }
+}
+
+/*
+    Related class extensions
+ */
+
+fun Array<Note>.countNote(note : Note) : Int {
+    return this.count { n -> n.isHarmonicOf(note) }
+}
+
+fun Array<Array<Note>>.countNote2(note : Note) : Int {
+    return this.count { n -> n.countNote(note) > 0 }
 }
 
 
