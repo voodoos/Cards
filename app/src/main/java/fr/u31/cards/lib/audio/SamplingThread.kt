@@ -59,8 +59,8 @@ class SamplingThread(val ctx : Context) : Thread() {
         return dataOut
     }
 
-    private fun indexToFreq(idx : Int) : Int {
-        return idx * sampleRateInHz / bufferSizeInBytes
+    private fun indexToFreq(idx : Int) : Double {
+        return idx.toDouble() * sampleRateInHz.toDouble() / bufferSizeInBytes.toDouble()
     }
 
     private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Double> {
@@ -78,15 +78,14 @@ class SamplingThread(val ctx : Context) : Thread() {
         val peakFrequencies = ArrayList<Double>()
 
 
-        val threshold = mediane + (70.0 / 100.0) * v_max
+        val threshold = (20.0 / 100.0) * v_max
         for (i in 1..(spectrum.size - 2)) {
             val prev = spectrum[i] - spectrum[i-1]
             val next = spectrum[i + 1] - spectrum[i]
 
             if(prev >= 0 && next <= 0 && spectrum[i] > threshold)
                 peakFrequencies.add(
-                    (i.toDouble()) * (sampleRateInHz.toDouble())
-                            / (bufferSizeInBytes.toDouble())
+                    indexToFreq(i)
                 )
         }
         //debug("threshold", threshold)
