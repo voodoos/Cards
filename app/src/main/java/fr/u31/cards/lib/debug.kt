@@ -1,5 +1,7 @@
 package fr.u31.cards.lib
 
+val debugOff = false
+
 fun <T> debug(tab: Array<T>) {
     debug(tab.asList())
 }
@@ -39,9 +41,11 @@ fun toStr(s : Any) : String {
 }
 
 fun debug(s : Any?) {
-    println("cards-debug: " + toStrA(s))
+    if(!debugOff)
+        println("cards-debug: " + toStrA(s))
 }
 
 fun debug(label : String, s : Any?) {
-    println("cards-debug: " + label + ": "+ toStrA(s))
+    if(!debugOff)
+        println("cards-debug: " + label + ": "+ toStrA(s))
 }
