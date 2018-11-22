@@ -1,6 +1,8 @@
 package fr.u31.cards
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import fr.u31.cards.lib.Cards
@@ -11,6 +13,14 @@ import fr.u31.cards.lib.make_cards
 import kotlinx.android.synthetic.main.activity_diapo.*
 import java.util.*
 import kotlin.concurrent.timerTask
+import com.jjoe64.graphview.series.LineGraphSeries
+import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.GridLabelRenderer
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.ValueDependentColor
+import com.jjoe64.graphview.series.BarGraphSeries
+
+
 
 
 fun fade_out(time : Long) : AlphaAnimation {
@@ -30,6 +40,8 @@ fun fade_in(time : Long) : AlphaAnimation {
 class DiapoActivity : SamplingActivity() {
     private var timer : Timer? = null
     private var cards : Cards? = null
+    private val series = BarGraphSeries(arrayOf())
+    private val viewportX = 1500
 
     fun startTimer() {
         val fadeOutTask = timerTask {
@@ -54,7 +66,19 @@ class DiapoActivity : SamplingActivity() {
 
         val checkSuccess = timerTask {
             val peaks = getThread().lastPeakFrequencies
-            //debug(getThread().lastPeakFrequencies?.deepToString())
+
+            this@DiapoActivity.runOnUiThread {
+                val spectrum = getThread().lastSpectrum?.slice(0..viewportX)
+
+                // Show spectrum:
+                if (spectrum != null)
+                    series.resetData(
+                        spectrum.mapIndexed { i, d ->
+                            DataPoint(i.toDouble(), d)
+                        }.toTypedArray()
+                    )
+            }
+
 
             if(peaks != null && peaks.size > 0) {
                 val peakNotes = peaks.map {
@@ -85,12 +109,47 @@ class DiapoActivity : SamplingActivity() {
 
         timer?.scheduleAtFixedRate(fadeOutTask, 4300, 5000)
         timer?.scheduleAtFixedRate(fadeInTask, 0, 5000)
-        timer?.scheduleAtFixedRate(checkSuccess, 0, 250)
+        timer?.scheduleAtFixedRate(checkSuccess, 0, 30)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_diapo)
+
+        val graph = findViewById<View>(R.id.graph) as GraphView
+        // set manual X bounds
+        graph.viewport.isXAxisBoundsManual = true
+        graph.viewport.setMinX(0.0)
+        graph.viewport.setMaxX(viewportX.toDouble())
+        debug(getThread().bufferSizeInBytes.toDouble())
+        // set manual Y bounds
+        graph.viewport.isYAxisBoundsManual = true
+        graph.viewport.setMinY(1.0)
+        graph.viewport.setMaxY(100.0)
+
+        graph.gridLabelRenderer.gridStyle = GridLabelRenderer.GridStyle.NONE
+        graph.gridLabelRenderer.isHorizontalLabelsVisible = false
+        graph.gridLabelRenderer.isVerticalLabelsVisible = false
+        graph.gridLabelRenderer.padding = 0
+        graph.addSeries(series)
+
+        // styling
+        series.setValueDependentColor { data ->
+            Color.rgb(
+                50,
+                150,
+                150
+            )/*
+            Color.rgb(
+                data.x.toInt() * 255 / 4,
+                Math.abs(data.y * 255 / 6).toInt(),
+                100
+            )*/
+        }
+
+        series.spacing = 100
+        series.isDrawValuesOnTop = false
+        series.dataWidth = 500.0
     }
 
     override fun onStart() {

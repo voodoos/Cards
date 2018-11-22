@@ -23,9 +23,10 @@ class SamplingThread(val ctx : Context) : Thread() {
     private val sampleRateInHz = 44100
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat  = AudioFormat.ENCODING_PCM_16BIT
-    private val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 3 /* todo: choosen arbitralrly... */
+    val bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat) * 3 /* todo: choosen arbitralrly... */
 
     var lastPeakFrequencies : ArrayList<Double>? = null
+    var lastSpectrum : DoubleArray? = null
 
     private val fft = RealDoubleFFT(bufferSizeInBytes) // Maybe a bad value
 
@@ -56,6 +57,12 @@ class SamplingThread(val ctx : Context) : Thread() {
         }
         dataOut[j] = data[size - 1] * data[size - 1] * scaler / 4.0
 
+        // Log scale
+        for(i in 0..(dataOut.size - 1))
+            dataOut[i] = 10.0 * log10(dataOut[i]);
+
+        lastSpectrum = dataOut
+
         return dataOut
     }
 
@@ -64,13 +71,7 @@ class SamplingThread(val ctx : Context) : Thread() {
     }
 
     private fun peakAnalysis(spectrum : DoubleArray) : ArrayList<Double> {
-
-        for(i in 0..(spectrum.size - 1))
-            spectrum[i] = 10.0 * log10(spectrum[i]);
-
-
         val i_max = spectrum.indices.maxBy { spectrum[it] } ?: -1
-        val mediane = (spectrum.sorted())[spectrum.size / 2]
         val v_max = spectrum[i_max]
 
         /* Normalization */
